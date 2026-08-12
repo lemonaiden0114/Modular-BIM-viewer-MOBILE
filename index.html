@@ -273,22 +273,6 @@
       letter-spacing: -0.01em;
     }
 
-    #center-copyright {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 7;
-      pointer-events: none;
-      color: rgba(180, 180, 180, 0.45);
-      font-size: 1rem;
-      font-weight: 600;
-      letter-spacing: 0.04em;
-      text-align: center;
-      white-space: nowrap;
-      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
-    }
-
     #drop-overlay {
       position: absolute; inset: 0; display: flex; flex-direction: column;
       align-items: center; justify-content: center; color: #8a93a3; pointer-events: none; z-index: 5;
@@ -377,7 +361,6 @@
 
   <main id="viewer">
     <div id="viewer-notice">모바일 최적화로 인해 일부 기능이 제한됩니다</div>
-    <div id="center-copyright">© 2026 Jeewon Choi</div>
     <canvas id="three-canvas"></canvas>
     <div id="drop-overlay" class="hidden" aria-hidden="true"></div>
     <div id="loading">⏳ 로딩 중...</div>
