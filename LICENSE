@@ -1,4 +1,33 @@
-                                 Apache License
+ 라이선스 명시
+
+Copyright 2026 lemonaiden0114. All rights reserved.
+
+본 프로젝트는 **Apache License 2.0**에 따라 라이선스가 부여됩니다. 
+
+이 파일은 Apache License, Version 2.0("라이선스")에 따라 라이선스가 부여됩니다. 라이선스를 준수하지 않고는 이 파일을 사용할 수 없습니다. 라이선스 사본은 다음 위치에서 얻을 수 있습니다.
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+관련 법률에서 요구하거나 서면으로 동의하지 않는 한, 라이선스에 따라 배포되는 소프트웨어는 명시적이든 묵시적이든 어떠한 종류의 보증이나 조건 없이 "있는 그대로(AS IS)" 배포됩니다. 
+라이선스에 따른 권한 및 제한 사항을 규정하는 특정 언어는 라이선스를 참조하십시오.
+
+---
+
+This project is licensed under the Apache License, Version 2.0.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+===================================================================================
+                                Apache License
                            Version 2.0, January 2004
                         http://www.apache.org/licenses/
 
