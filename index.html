@@ -1,36 +1,16 @@
-<!--
-  Copyright 2026 lemonaiden0114
-
-  Licensed under the Apache License, Version 2.0 (the "License");
-  you may not use this file except in compliance with the License.
-  You may obtain a copy of the License at
-
-      http://www.apache.org/licenses/LICENSE-2.0
-
-  Unless required by applicable law or agreed to in writing, software
-  distributed under the License is distributed on an "AS IS" BASIS,
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  See the License for the specific language governing permissions and
-  limitations under the License.
-
-  본 소스코드는 Apache License, Version 2.0에 따라 라이선스가 부여됩니다.
-  라이선스 전문 및 조건은 http://www.apache.org/licenses/LICENSE-2.0 에서 확인하실 수 있습니다.
-  본 소프트웨어는 어떠한 종류의 보증 없이 "있는 그대로" 제공됩니다.
--->
 <!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>모듈러 BIM 뷰어</title>
+  <title>mobile-bim-viewer</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; }
     body {
-      background: rgb(28, 28, 34);
+      background: #1c1c22;
       color: #e8ebf0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      display: flex;
-      height: 100vh;
       overflow: hidden;
       position: relative;
     }
@@ -40,405 +20,274 @@
       top: 0;
       left: 0;
       width: 100%;
-      height: 70px;
+      height: 64px;
       background: #121212;
       display: flex;
-      align-items: stretch;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
       z-index: 20;
       border-bottom: 1px solid #2f3744;
     }
 
     #topbar-title {
-      background: #1c1c22;
-      width: 280px;
       display: flex;
       align-items: center;
-      justify-content: center;
-      gap: 10px;
-      color: #d7dbe2;
+      min-width: 0;
+      color: #f4f6fb;
     }
-    #topbar-title h1 { font-size: 1.05rem; font-weight: 600; }
+    #topbar-title h1 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
 
     #topbar-tools {
       display: flex;
       align-items: center;
-      padding: 0 20px;
-      gap: 12px;
+      gap: 8px;
     }
+
     .topbar-btn {
       background: #1e1e24;
       border: 1px solid #3a4250;
-      border-radius: 4px;
-      width: 70px;
-      height: 56px;
+      border-radius: 10px;
+      width: 48px;
+      height: 48px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       cursor: pointer;
       color: #ffffff;
-      font-size: 0.65rem;
-      font-weight: 600;
-      transition: background 0.15s, border-color 0.15s;
+      transition: background 0.15s, border-color 0.15s, opacity 0.15s, transform 0.15s;
+      flex-shrink: 0;
+      position: relative;
     }
-    .topbar-btn:hover { background: #2a303c; border-color: #5c687c; }
-    .topbar-btn .icon { font-size: 1.3rem; margin-bottom: 4px; }
-    .topbar-btn.active { background: #2a384c; border-color: #5c88fc; }
+    .topbar-btn .icon { font-size: 1.1rem; line-height: 1; }
+    .topbar-btn .label {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+    .topbar-btn.active {
+      background: #273548;
+      border-color: #5c88fc;
+      box-shadow: 0 0 0 1px rgba(92,136,252,0.18) inset;
+    }
     .topbar-btn.disabled {
-      opacity: 0.45;
+      opacity: 0.34;
+      filter: grayscale(0.7);
       cursor: not-allowed;
     }
-    .topbar-btn.disabled:hover {
+    .topbar-btn.disabled:hover,
+    .topbar-btn.disabled:active {
       background: #1e1e24;
       border-color: #3a4250;
+      transform: none;
+    }
+    .topbar-btn.settings-btn {
+      width: 52px;
+      height: 52px;
+      border-radius: 12px;
     }
 
     .side-popup {
       position: absolute;
-      top: 90px;
-      left: 20px;
-      width: 260px;
+      top: 76px;
+      left: 12px;
+      right: 12px;
+      width: auto;
       background: #171b22;
       border: 1px solid #2f3744;
-      border-radius: 8px;
-      padding: 16px 20px;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.45);
-      z-index: 15;
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 10px 28px rgba(0,0,0,0.42);
+      z-index: 25;
       display: none;
       flex-direction: column;
-      gap: 16px;
-      max-height: calc(100vh - 110px);
+      gap: 14px;
+      max-height: calc(100vh - 92px);
       overflow-y: auto;
     }
 
     .section-title {
-      font-size: 0.65rem;
+      font-size: 0.68rem;
       color: #aeb8c7;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
-      font-weight: 600;
-      margin-bottom: 8px;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+      margin-bottom: 2px;
     }
-
-    .btn-add {
-      width: 100%;
-      background: #8a97aa;
-      color: #fff;
-      border: none;
-      padding: 10px;
-      border-radius: 6px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.2s;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 6px;
-    }
-    .btn-add:hover { background: #bfc6cf; }
-    #file-input { display: none; }
-
-    #object-list {
-      background: #12151b;
-      border: 1px solid #2f3744;
-      border-radius: 6px;
-      overflow: hidden;
-    }
-    .list-item {
-      padding: 10px 12px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 0.8rem;
-      color: #eef1f6;
-      cursor: pointer;
-      transition: background 0.15s;
-    }
-    .list-item:not(:last-child) { border-bottom: 1px solid #2f3744; }
-    .list-item:hover { background: #1a2028; }
-    .list-item.active { background: #202631; color: #fff; font-weight: 500; }
-
-    #properties-box {
-      display: none;
-      flex-direction: column;
-      gap: 10px;
-      padding-top: 12px;
-      border-top: 1px solid #2f3744;
-    }
-    .prop-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.75rem;
-      color: #aeb8c7;
-    }
-    .color-control {
-      display: flex;
-      align-items: center;
-      background: #12151b;
-      border-radius: 4px;
-      padding: 3px 6px;
-      gap: 6px;
-      cursor: pointer;
-      border: 1px solid #2f3744;
-    }
-    .color-control span { color: #eef1f6; font-size: 0.7rem; font-family: monospace; }
-    .color-picker {
-      width: 14px;
-      height: 14px;
-      border: none;
-      background: transparent;
-      padding: 0;
-      cursor: pointer;
-    }
-    .color-picker::-webkit-color-swatch-wrapper { padding: 0; }
-    .color-picker::-webkit-color-swatch { border: none; border-radius: 2px; }
 
     .instructions {
-      font-size: 0.65rem;
-      color: #8b95a5;
+      font-size: 0.72rem;
+      color: #97a2b4;
       line-height: 1.6;
     }
-    .instructions span { color: #7bbf88; }
 
-    .layer-list {
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 0.8rem;
+      color: #d5dbe6;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: #12151b;
+      border: 1px solid #2f3744;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 40px;
+      height: 22px;
+      flex-shrink: 0;
+    }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute; cursor: pointer; inset: 0;
+      background-color: #2f3744; transition: .2s; border-radius: 999px;
+    }
+    .slider:before {
+      position: absolute; content: "";
+      height: 16px; width: 16px; left: 3px; bottom: 3px;
+      background-color: white; transition: .2s; border-radius: 50%;
+    }
+    input:checked + .slider { background-color: #5c88fc; }
+    input:checked + .slider:before { transform: translateX(18px); }
+
+    .settings-card {
+      background: #12151b;
+      border: 1px solid #2f3744;
+      border-radius: 12px;
+      padding: 12px;
       display: flex;
       flex-direction: column;
-      gap: 4px;
-      max-height: 150px;
-      overflow-y: auto;
+      gap: 10px;
     }
-    .layer-item {
+
+    .vc-title {
+      font-size: 0.72rem;
+      color: #c5cedd;
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+    .vc-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      width: 100%;
+    }
+    .btn-vc {
+      min-height: 38px;
+      background: #1a1f28;
+      border: 1px solid #313a49;
+      color: #eef1f6;
+      border-radius: 8px;
+      padding: 8px 0;
+      font-size: 0.72rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.15s;
+    }
+    .btn-vc:active { transform: scale(0.98); }
+    .vc-top { grid-column: 2 / 3; }
+    .vc-left { grid-column: 1 / 2; }
+    .vc-front { grid-column: 2 / 3; }
+    .vc-right { grid-column: 3 / 4; }
+    .vc-back { grid-column: 1 / 2; }
+    .vc-home { grid-column: 2 / 4; background: #8a97aa; border-color: #8a97aa; color: #fff; }
+
+    .bg-picker-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 0.7rem;
-      color: #b0bbd2;
+      padding-top: 4px;
+      gap: 12px;
     }
-
-    .coord-container { display: flex; gap: 6px; }
-    .coord-box {
-      flex: 1; background: #12151b; border: 1px solid #2f3744;
-      border-radius: 4px; display: flex; align-items: center; padding: 2px 4px;
+    .bg-swatch {
+      width: 26px;
+      height: 26px;
+      border: 1px solid #3d4757;
+      border-radius: 6px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      flex-shrink: 0;
     }
-    .coord-box span { color: #8a97aa; font-size: 0.65rem; font-weight: bold; margin-right: 4px; }
-    .coord-box input {
-      width: 100%; background: transparent; border: none;
-      color: #fff; font-family: monospace; font-size: 0.75rem; outline: none;
-    }
-    .coord-box input[type=number] { -moz-appearance: textfield; }
-    .coord-box input::-webkit-outer-spin-button, .coord-box input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-
-    #view-cube-panel {
-      position: absolute;
-      top: 90px;
-      right: 20px;
-      background: #171b22;
-      border: 1px solid #2f3744;
-      border-radius: 8px;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.45);
-      z-index: 10;
-      width: 180px;
-    }
-    .vc-title { font-size: 0.65rem; color: #aeb8c7; font-weight: 600; margin-bottom: 4px; letter-spacing: 0.5px; }
-    .vc-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; width: 100%; }
-    .btn-vc {
-      background: #12151b; border: 1px solid #2f3744; color: #eef1f6; border-radius: 4px;
-      padding: 6px 0; font-size: 0.7rem; font-weight: 600; cursor: pointer; transition: 0.15s;
-    }
-    .btn-vc:hover { background: #202631; border-color: #3a4250; color: #fff; }
-    .vc-top { grid-column: 2 / 3; } .vc-left { grid-column: 1 / 2; } .vc-front { grid-column: 2 / 3; }
-    .vc-right { grid-column: 3 / 4; } .vc-back { grid-column: 1 / 2; }
-    .vc-home { grid-column: 2 / 4; background: #8a97aa; border-color: #8a97aa; color: #fff; }
-    .vc-home:hover { background: #bfc6cf; }
 
     #viewer {
-      flex: 1; width: 100%; height: calc(100vh - 70px);
-      position: absolute; top: 70px; left: 0; z-index: 1; touch-action: none;
+      position: absolute;
+      top: 64px;
+      left: 0;
+      width: 100%;
+      height: calc(100vh - 64px);
+      touch-action: none;
+      overflow: hidden;
     }
     canvas { display: block; width: 100%; height: 100%; outline: none; }
+
+    #viewer-notice {
+      position: absolute;
+      top: 10px;
+      left: 12px;
+      right: 12px;
+      z-index: 8;
+      pointer-events: none;
+      color: #ffffff;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-align: center;
+      text-shadow: 0 1px 6px rgba(0,0,0,0.55);
+      letter-spacing: -0.01em;
+    }
+
+    #center-copyright {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 7;
+      pointer-events: none;
+      color: rgba(180, 180, 180, 0.45);
+      font-size: 1rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-align: center;
+      white-space: nowrap;
+      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+    }
 
     #drop-overlay {
       position: absolute; inset: 0; display: flex; flex-direction: column;
       align-items: center; justify-content: center; color: #8a93a3; pointer-events: none; z-index: 5;
     }
     #drop-overlay.hidden { display: none; }
-    #drop-overlay .icon { font-size: 3rem; margin-bottom: 10px; color: #3a4250; }
 
     #loading {
       display: none; position: absolute; inset: 0; background: rgba(43,47,56,0.7);
-      align-items: center; justify-content: center; color: #8a97aa; font-size: 1rem; z-index: 20;
+      align-items: center; justify-content: center; color: #8a97aa; font-size: 1rem; z-index: 30;
     }
     #loading.visible { display: flex; }
 
     #axis-badge {
-      position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: none;
+      position: absolute; bottom: 18px; left: 50%; transform: translateX(-50%); display: none;
       pointer-events: none; padding: 8px 16px; border-radius: 20px; font-size: 0.8rem;
       font-weight: 600; background: rgba(30,120,60,.86); color: #b6ffbe; z-index: 10;
     }
     #axis-badge.z { background: rgba(120,30,30,.86); color: #ffbaba; }
-
-    #selection-box { position: absolute; z-index: 100; pointer-events: none; display: none; }
-    .sel-window { border: 1px solid rgba(114, 165, 245, 0.8); background: rgba(114, 165, 245, 0.15); }
-    .sel-crossing { border: 1px dashed rgba(94, 182, 112, 0.8); background: rgba(94, 182, 112, 0.15); }
-
-    .table-cell-input {
-      width: 100%; border: none; background: #1c1c22; color: #eef1f6;
-      padding: 6px 4px; font-size: 0.75rem; outline: none; box-sizing: border-box;
-      min-width: 0;
-    }
-    .table-cell-input:focus { background: #202631; }
-    .header-input { background: #171b22; font-weight: bold; }
-
-    #table-popup {
-      display: none; 
-      position: absolute; 
-      left: 300px; 
-      top: 90px; 
-      width: 320px; 
-      min-width: 200px; 
-      min-height: 180px;
-      max-width: 90vw; 
-      max-height: 80vh;
-      background: #1c1c22; 
-      border: 1px solid #2f3744; 
-      border-radius: 8px; 
-      padding: 16px; 
-      box-shadow: 0 6px 18px rgba(0,0,0,0.45); 
-      z-index: 15; 
-      flex-direction: column; 
-      gap: 12px;
-      resize: both; 
-      overflow: auto; 
-    }
-
-    #table-controls {
-      display: none;
-      gap: 8px;
-      flex-shrink: 0;
-    }
-    #table-controls.show {
-      display: flex;
-    }
-    .btn-icon-toggle {
-      background: none;
-      border: none;
-      color: #8b95a5;
-      font-size: 0.9rem;
-      cursor: pointer;
-      padding: 2px 4px;
-      border-radius: 4px;
-      transition: background 0.15s, color 0.15s;
-    }
-    .btn-icon-toggle:hover {
-      background: #2a303c;
-      color: #fff;
-    }
-
-    .section-options {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    .section-axis-btn {
-      flex: 1;
-      padding: 8px;
-      background: #12151b;
-      border: 1px solid #2f3744;
-      color: #aeb8c7;
-      border-radius: 4px;
-      cursor: pointer;
-      font-weight: 600;
-      font-size: 0.75rem;
-    }
-    .section-axis-btn.active {
-      background: #202631;
-      border-color: #5c88fc;
-      color: #fff;
-    }
-    .section-status {
-      background: #12151b;
-      border: 1px solid #2f3744;
-      border-radius: 5px;
-      padding: 8px 10px;
-      color: #cbd5e1;
-      font-family: monospace;
-      font-size: 0.68rem;
-      line-height: 1.7;
-    }
-    .section-status strong { color: #86aaff; }
-    .section-hint {
-      color: #8b95a5;
-      font-size: 0.66rem;
-      line-height: 1.5;
-    }
-    .toggle-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 0.75rem;
-      color: #aeb8c7;
-    }
-    .switch {
-      position: relative;
-      display: inline-block;
-      width: 36px;
-      height: 20px;
-    }
-    .switch input { opacity: 0; width: 0; height: 0; }
-    .slider {
-      position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
-      background-color: #2f3744; transition: .2s; border-radius: 20px;
-    }
-    .slider:before {
-      position: absolute; content: "";
-      height: 14px; width: 14px; left: 3px; bottom: 3px;
-      background-color: white; transition: .2s; border-radius: 50%;
-    }
-    input:checked + .slider { background-color: #5c88fc; }
-    input:checked + .slider:before { transform: translateX(16px); }
-
-    @media (max-width: 768px) {
-      #topbar-title {
-        width: 160px;
-      }
-
-      #topbar-title h1 {
-        font-size: 0.9rem;
-      }
-
-      #topbar-tools {
-        gap: 8px;
-        padding: 0 10px;
-        overflow-x: auto;
-      }
-
-      .topbar-btn {
-        min-width: 62px;
-        width: 62px;
-        height: 52px;
-        font-size: 0.58rem;
-        flex-shrink: 0;
-      }
-
-      .topbar-btn .icon {
-        font-size: 1.1rem;
-      }
-
-      #view-cube-panel {
-        top: auto;
-        bottom: 16px;
-        right: 16px;
-        width: 150px;
-        padding: 12px;
-      }
-    }
   </style>
 </head>
 <body>
@@ -447,138 +296,28 @@
       <h1>모듈러 BIM 뷰어</h1>
     </div>
     <div id="topbar-tools">
-      <button class="topbar-btn" id="btn-toggle-file">
-        <span class="icon">📁</span>
-        <span>파일 관리</span>
+      <button class="topbar-btn disabled" id="btn-toggle-file" aria-disabled="true" title="파일 관리 비활성화">
+        <span class="icon">📁</span><span class="label">파일 관리</span>
       </button>
-      <button class="topbar-btn" id="btn-toggle-list">
-        <span class="icon">📋</span>
-        <span>객체 리스트</span>
+      <button class="topbar-btn disabled" id="btn-distance" aria-disabled="true" title="거리 측정 비활성화">
+        <span class="icon">📏</span><span class="label">거리 측정</span>
       </button>
-      <button class="topbar-btn" id="btn-toggle-move" title="객체 이동 기능 비활성화">
-        <span class="icon">✥</span>
-        <span>객체 이동</span>
+      <button class="topbar-btn disabled" id="btn-markup" aria-disabled="true" title="주석/마크업 비활성화">
+        <span class="icon">✏️</span><span class="label">주석/마크업</span>
       </button>
-      <button class="topbar-btn">
-        <span class="icon">📏</span>
-        <span>거리 측정</span>
+      <button class="topbar-btn disabled" id="btn-schedule" aria-disabled="true" title="일람표 비활성화">
+        <span class="icon">📑</span><span class="label">일람표</span>
       </button>
-      <button class="topbar-btn" id="btn-toggle-section">
-        <span class="icon">✂️</span>
-        <span>단면 보기</span>
-      </button>
-      <button class="topbar-btn">
-        <span class="icon">✏️</span>
-        <span>주석/마크업</span>
-      </button>
-      <button class="topbar-btn">
-        <span class="icon">📑</span>
-        <span>일람표</span>
-      </button>
-      <button class="topbar-btn" id="btn-toggle-settings">
-        <span class="icon">⚙️</span>
-        <span>환경 설정</span>
+      <button class="topbar-btn settings-btn" id="btn-toggle-settings" title="환경 설정">
+        <span class="icon">⚙️</span><span class="label">환경 설정</span>
       </button>
     </div>
   </header>
 
-  <div id="file-popup" class="side-popup">
-    <div class="section-title">FILE MANAGEMENT</div>
-    <div style="display: flex; flex-direction: column; gap: 8px;">
-      <label class="btn-add" for="file-input" style="margin: 0;">
-        <span>파일 추가</span>
-      </label>
-      <input type="file" id="file-input" accept=".obj,.dxf,.json,.gltf,.glb" multiple />
-      <button class="btn-add" id="btn-save-project" style="background: #3a4250; color: #eef1f6; margin: 0;"><span>저장</span></button>
-
-      <div class="instructions" style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #2f3744;">
-        • 모바일 뷰어 전용<br>
-        • 한 손가락: <span>회전</span><br>
-        • 두 손가락: <span>핀치 확대/축소</span> 및 <span>평행 이동</span>
-      </div>
-    </div>
-  </div>
-
-  <div id="list-popup" class="side-popup">
-    <div class="section-title">OBJECT LIST & PROPERTIES</div>
-    <div id="object-list" style="display:none;"></div>
-
-    <div id="properties-box">
-      <div class="coord-container" id="prop-coords">
-        <div class="coord-box"><span>X</span><input type="number" id="pos-x" step="0.01" value="0.00"></div>
-        <div class="coord-box"><span>Y</span><input type="number" id="pos-y" step="0.01" value="0.00"></div>
-        <div class="coord-box"><span>Z</span><input type="number" id="pos-z" step="0.01" value="0.00"></div>
-      </div>
-
-      <div class="prop-row" id="prop-color-row">
-        <span>객체 색상</span>
-        <div class="color-control" onclick="document.getElementById('prop-color').click()">
-          <span id="prop-color-hex">#FFFFFF</span>
-          <input type="color" id="prop-color" class="color-picker" value="#ffffff">
-        </div>
-      </div>
-
-      <div class="prop-row" id="prop-opacity-row" style="display:none;">
-        <span>투명도</span>
-        <div style="display:flex; align-items:center; gap:8px;">
-          <span id="prop-opacity-val" style="font-family:monospace; color:#eef1f6; font-size:0.7rem;">100%</span>
-          <input type="range" id="prop-opacity" min="0.0" max="1.0" step="0.05" value="1.0" style="width: 80px; cursor:pointer;">
-        </div>
-      </div>
-
-      <div id="prop-layers" style="display:none;">
-        <div class="section-title" style="margin-top: 10px;">LAYERS</div>
-        <div class="layer-list" id="layer-list-container"></div>
-      </div>
-    </div>
-  </div>
-
-  <div id="section-popup" class="side-popup">
-    <div class="section-title">SECTION PLANE SETTINGS</div>
-    <div class="section-options">
-      <div class="toggle-row">
-        <span>단면 활성화</span>
-        <label class="switch">
-          <input type="checkbox" id="sec-enable">
-          <span class="slider"></span>
-        </label>
-      </div>
-      <div class="section-title" style="margin-top: 6px; margin-bottom: 4px;">단면 축 선택</div>
-      <div style="display: flex; gap: 6px;">
-        <button class="section-axis-btn" id="btn-sec-x">X축</button>
-        <button class="section-axis-btn" id="btn-sec-y">Y축</button>
-        <button class="section-axis-btn active" id="btn-sec-z">Z축</button>
-      </div>
-      <div class="toggle-row" style="margin-top: 6px;">
-        <span>절단 방향 반전</span>
-        <label class="switch">
-          <input type="checkbox" id="sec-flip">
-          <span class="slider"></span>
-        </label>
-      </div>
-      <div class="toggle-row">
-        <span>단면 기즈모 표시</span>
-        <label class="switch">
-          <input type="checkbox" id="sec-gizmo-visible" checked>
-          <span class="slider"></span>
-        </label>
-      </div>
-      <div class="section-title" style="margin-top: 2px; margin-bottom: 0;">현재 단면</div>
-      <div class="section-status" id="section-status">
-        <div>축: <strong>Z</strong></div>
-        <div>방향: <strong>-Z</strong></div>
-        <div>위치: <strong>0.00</strong></div>
-      </div>
-      <div class="section-hint">단면보기 기능은 현재 비활성화되어 있습니다.</div>
-      <div class="coord-container" id="sec-position-control">
-        <div class="coord-box" style="flex: 1;"><span id="sec-pos-axis">Z</span><input type="number" id="sec-position" step="0.01" value="0.00"></div>
-      </div>
-    </div>
-  </div>
-
   <div id="settings-popup" class="side-popup">
-    <div class="section-title">VIEW SETTINGS</div>
-    <div class="section-options">
+    <div class="section-title">환경 설정</div>
+
+    <div class="settings-card">
       <div class="toggle-row">
         <span>모델 외곽선 표시</span>
         <label class="switch">
@@ -586,1307 +325,337 @@
           <span class="slider"></span>
         </label>
       </div>
-      <div class="instructions">외곽선을 끄면 대형 GLB 모델의 렌더링 성능이 향상될 수 있습니다.</div>
+      <div class="instructions">외곽선을 끄면 일부 대형 모델에서 렌더링 성능이 좋아질 수 있습니다.</div>
     </div>
-  </div>
 
-  <div id="view-cube-panel">
-    <div class="vc-title">뷰 전환</div>
-    <div class="vc-grid">
-      <button class="btn-vc vc-top" id="vc-top">TOP</button>
-      <button class="btn-vc vc-left" id="vc-left">LEFT</button>
-      <button class="btn-vc vc-front" id="vc-front">FRONT</button>
-      <button class="btn-vc vc-right" id="vc-right">RIGHT</button>
-      <button class="btn-vc vc-back" id="vc-back">BACK</button>
-      <button class="btn-vc vc-home" id="vc-home">HOME</button>
-    </div>
-    <div style="width: 100%; border-top: 1px solid #2f3744; margin-top: 12px; padding-top: 12px; display: flex; justify-content: space-between; align-items: center;">
-      <div class="vc-title" style="margin-bottom:0; font-size: 0.75rem; letter-spacing: 0;">배경색상</div>
-      <div style="width: 20px; height: 20px; border: 1px solid #3d4757; border-radius: 2px; cursor: pointer; position: relative; overflow: hidden;" onclick="document.getElementById('bg-color').click()">
-        <div id="bg-color-display" style="width: 100%; height: 100%; background-color: #1c1c22; pointer-events: none;"></div>
-        <input type="color" id="bg-color" value="#1c1c22" style="position: absolute; opacity: 0; width: 0; height: 0; padding: 0; margin: 0; border: none;">
+    <div class="settings-card">
+      <div class="vc-title">뷰 전환</div>
+      <div class="vc-grid">
+        <button class="btn-vc vc-top" id="vc-top">TOP</button>
+        <button class="btn-vc vc-left" id="vc-left">LEFT</button>
+        <button class="btn-vc vc-front" id="vc-front">FRONT</button>
+        <button class="btn-vc vc-right" id="vc-right">RIGHT</button>
+        <button class="btn-vc vc-back" id="vc-back">BACK</button>
+        <button class="btn-vc vc-home" id="vc-home">HOME</button>
+      </div>
+      <div class="bg-picker-row">
+        <div class="instructions">배경 색상</div>
+        <div class="bg-swatch" onclick="document.getElementById('bg-color').click()">
+          <div id="bg-color-display" style="width:100%;height:100%;background:#1c1c22;pointer-events:none;"></div>
+          <input type="color" id="bg-color" value="#1c1c22" style="position:absolute;opacity:0;width:0;height:0;border:none;">
+        </div>
       </div>
     </div>
-  </div>
 
-  <div id="table-popup">
-    <div id="popup-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2f3744; padding-bottom: 8px; cursor: grab; flex-shrink: 0;">
-      <h2 style="font-size: 0.85rem; color: #d7dbe2; margin: 0; font-weight: 600;">객체 속성 데이터</h2>
-      <div style="display: flex; align-items: center; gap: 6px;">
-        <button id="toggle-table-controls" class="btn-icon-toggle" title="행/열 추가 편집 옵션 토글">⚙️</button>
-        <button id="close-table-popup" style="background: none; border: none; color: #8b95a5; font-size: 1.2rem; cursor: pointer; padding: 0;">&times;</button>
+    <div class="settings-card">
+      <div class="instructions">
+        모바일 최적화 상태입니다.<br>
+        한 손가락: 회전<br>
+        두 손가락: 확대/축소 및 이동
       </div>
-    </div>
-    
-    <div id="table-wrapper" style="width: 100%; flex: 1; overflow: auto; border: 1px solid #2f3744; border-radius: 4px;">
-      <table id="props-table" style="width: 100%; border-collapse: collapse; table-layout: fixed;">
-        <colgroup id="props-colgroup"></colgroup>
-        <thead id="props-thead"></thead>
-        <tbody id="props-tbody"></tbody>
-      </table>
-    </div>
-
-    <div id="table-controls">
-      <button id="btn-add-row" class="btn-add" style="flex: 1; padding: 6px; font-size: 0.75rem; background: #2f3744;">+ 행 추가</button>
-      <button id="btn-add-col" class="btn-add" style="flex: 1; padding: 6px; font-size: 0.75rem; background: #2f3744;">+ 열 추가</button>
     </div>
   </div>
 
   <main id="viewer">
+    <div id="viewer-notice">모바일 최적화로 인해 일부 기능이 제한됩니다</div>
+    <div id="center-copyright">© 2026 Jeewon Choi</div>
     <canvas id="three-canvas"></canvas>
-    <div id="selection-box"></div>
     <div id="drop-overlay" class="hidden" aria-hidden="true"></div>
     <div id="loading">⏳ 로딩 중...</div>
     <div id="axis-badge"></div>
   </main>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/TransformControls.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/OBJLoader.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/dxf-parser@1.1.2/dist/dxf-parser.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/OBJLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dxf-parser@1.1.2/dist/dxf-parser.js"></script>
 
-<script>
-const ACI_COLORS=["#000000","#ff0000","#ffff00","#00ff00","#00ffff","#0000ff","#ff00ff","#ffffff","#414141","#808080","#ff0000","#ffaaaa","#bd0000","#bd7e7e","#810000","#815656","#680000","#684545","#450000","#452e2e","#ff3f00","#ffbfaa","#bd2e00","#bd8d7e","#811f00","#816056","#681900","#684d45","#451100","#45332e","#ff7f00","#ffd4aa","#bd5e00","#bd9d7e","#814000","#816b56","#683300","#685645","#452200","#45392e","#ffbf00","#ffeaaa","#bd8d00","#bdad7e","#816000","#817656","#684d00","#685f45","#453300","#453f2e","#ffff00","#ffffaa","#bdbd00","#bdbd7e","#818100","#818156","#686800","#686845","#454500","#45452e","#bfff00","#eaffaa","#8dbd00","#adbd7e","#608100","#768156","#4d6800","#5f6845","#334500","#3f452e","#7fff00","#d4ffaa","#5ebd00","#9dbd7e","#408100","#6b8156","#336800","#566845","#224500","#39452e","#3fff00","#bffffa","#2ebd00","#8dbd7e","#1f8100","#608156","#196800","#4d6845","#114500","#33452e","#00ff00","#aaffaa","#00bd00","#7ebd7e","#008100","#568156","#006800","#456845","#004500","#2e452e","#00ff3f","#aaffbf","#00bd2e","#7ebd8d","#00811f","#568160","#006819","#45684d","#004511","#2e4533","#00ff7f","#aaffd4","#00bd5e","#7ebd9d","#008140","#56816b","#006833","#456856","#004522","#2e4539","#00ffbf","#aaffe5","#00bd8d","#7ebdad","#008160","#568176","#00684d","#45684f","#004533","#2e453f","#00ffff","#aaffff","#00bdbd","#7ebdbd","#008181","#568181","#006868","#456868","#004545","#2e4545","#00bfff","#aaeaff","#008dbd","#7eadbd","#006081","#567681","#004d68","#455f68","#003345","#2e3f45","#007fff","#aad4ff","#005ebd","#7e9dbd","#004081","#566b81","#003368","#455668","#002245","#2e3945","#003fff","#aabfff","#002ebd","#7e8dbd","#001f81","#566081","#001968","#454d68","#001145","#2e3345","#0000ff","#aaaaff","#0000bd","#7e7ebd","#000081","#565681","#000068","#454568","#000045","#2e2e45","#3f00ff","#bfaaff","#2e00bd","#8d7ebd","#1f0081","#605681","#190068","#4d4568","#110045","#332e45","#7f00ff","#d4aaff","#5e00bd","#9d7ebd","#400081","#6b5681","#330068","#564568","#220045","#392e45","#bf00ff","#eaaaff","#8d00bd","#ad7ebd","#600081","#765681","#4d0068","#5f4568","#330045","#3f2e45","#ff00ff","#ffaaff","#bd00bd","#bd7ebd","#810081","#815681","#680068","#684568","#450045","#452e45","#ff00bf","#ffaaea","#bd008d","#bd7ead","#810060","#815676","#68004d","#68455f","#450033","#452e3f","#ff007f","#ffaad4","#bd005e","#bd7e9d","#810040","#81566b","#680033","#684556","#450022","#452e39","#ff003f","#ffaabf","#bd002e","#bd7e8d","#81001f","#815660","#680019","#68454d","#450011","#452e33","#333333","#505050","#696969","#828282","#9c9c9c","#b5b5b5","#cecece","#e7e7e7","#ffffff"];
-function getHexColorFromIndex(i) { return (i>=0 && i<ACI_COLORS.length) ? ACI_COLORS[i] : "#ffffff"; }
+  <script>
+    const ACI_COLORS=["#000000","#ff0000","#ffff00","#00ff00","#00ffff","#0000ff","#ff00ff","#ffffff","#414141","#808080","#ff0000","#ffaaaa","#bd0000","#bd7e7e","#810000","#815656","#680000","#684545","#450000","#452e2e","#ff3f00","#ffbfaa","#bd2e00","#bd8d7e","#811f00","#816056","#681900","#684d45","#451100","#45332e","#ff7f00","#ffd4aa","#bd5e00","#bd9d7e","#814000","#816b56","#683300","#685645","#452200","#45392e","#ffbf00","#ffeaaa","#bd8d00","#bdad7e","#816000","#817656","#684d00","#685f45","#453300","#453f2e","#ffff00","#ffffaa","#bdbd00","#bdbd7e","#818100","#818156","#686800","#686845","#454500","#45452e","#bfff00","#eaffaa","#8dbd00","#adbd7e","#608100","#768156","#4d6800","#5f6845","#334500","#3f452e","#7fff00","#d4ffaa","#5ebd00","#9dbd7e","#408100","#6b8156","#336800","#566845","#224500","#39452e","#3fff00","#bffffa","#2ebd00","#8dbd7e","#1f8100","#608156","#196800","#4d6845","#114500","#33452e","#00ff00","#aaffaa","#00bd00","#7ebd7e","#008100","#568156","#006800","#456845","#004500","#2e452e","#00ff3f","#aaffbf","#00bd2e","#7ebd8d","#00811f","#568160","#006819","#45684d","#004511","#2e4533","#00ff7f","#aaffd4","#00bd5e","#7ebd9d","#008140","#56816b","#006833","#456856","#004522","#2e4539","#00ffbf","#aaffe5","#00bd8d","#7ebdad","#008160","#568176","#00684d","#45684f","#004533","#2e453f","#00ffff","#aaffff","#00bdbd","#7ebdbd","#008181","#568181","#006868","#456868","#004545","#2e4545","#00bfff","#aaeaff","#008dbd","#7eadbd","#006081","#567681","#004d68","#455f68","#003345","#2e3f45","#007fff","#aad4ff","#005ebd","#7e9dbd","#004081","#566b81","#003368","#455668","#002245","#2e3945","#003fff","#aabfff","#002ebd","#7e8dbd","#001f81","#566081","#001968","#454d68","#001145","#2e3345","#0000ff","#aaaaff","#0000bd","#7e7ebd","#000081","#565681","#000068","#454568","#000045","#2e2e45","#3f00ff","#bfaaff","#2e00bd","#8d7ebd","#1f0081","#605681","#190068","#4d4568","#110045","#332e45","#7f00ff","#d4aaff","#5e00bd","#9d7ebd","#400081","#6b5681","#330068","#564568","#220045","#392e45","#bf00ff","#eaaaff","#8d00bd","#ad7ebd","#600081","#765681","#4d0068","#5f4568","#330045","#3f2e45","#ff00ff","#ffaaff","#bd00bd","#bd7ebd","#810081","#815681","#680068","#684568","#450045","#452e45","#ff00bf","#ffaaea","#bd008d","#bd7ead","#810060","#815676","#68004d","#68455f","#450033","#452e3f","#ff007f","#ffaad4","#bd005e","#bd7e9d","#810040","#81566b","#680033","#684556","#450022","#452e39","#ff003f","#ffaabf","#bd002e","#bd7e8d","#81001f","#815660","#680019","#68454d","#450011","#452e33","#333333","#505050","#696969","#828282","#9c9c9c","#b5b5b5","#cecece","#e7e7e7","#ffffff"];
+    function getHexColorFromIndex(i) { return (i>=0 && i<ACI_COLORS.length) ? ACI_COLORS[i] : "#ffffff"; }
 
-function DXFToThree(dxf) {
-  const container = new THREE.Group();
-  const layerData = {};
-  if (dxf.tables && dxf.tables.layer && dxf.tables.layer.layers) {
-    for (const [name, info] of Object.entries(dxf.tables.layer.layers)) {
-      layerData[name] = { name, colorHex: getHexColorFromIndex(info.color||7), materials: [] };
-    }
-  }
-  dxf.entities.forEach(ent => {
-    let lname = ent.layer || '0';
-    if (!layerData[lname]) layerData[lname] = { name: lname, colorHex: "#ffffff", materials: [] };
-    let hex = ent.colorIndex ? getHexColorFromIndex(ent.colorIndex) : layerData[lname].colorHex;
-    const mat = new THREE.LineBasicMaterial({ color: new THREE.Color(hex), polygonOffset: true, polygonOffsetFactor: -100, polygonOffsetUnits: -100 });
-    mat.userData.originalColor = mat.color.getHex();
-    layerData[lname].materials.push(mat);
-
-    if (ent.type === 'LINE') {
-      const geo = new THREE.BufferGeometry().setFromPoints([
-        new THREE.Vector3(ent.vertices[0].x, ent.vertices[0].z||0, ent.vertices[0].y),
-        new THREE.Vector3(ent.vertices[1].x, ent.vertices[1].z||0, ent.vertices[1].y)
-      ]);
-      container.add(new THREE.Line(geo, mat));
-    } 
-    else if (ent.type === 'LWPOLYLINE' || ent.type === 'POLYLINE') {
-      const pts = ent.vertices.map(v => new THREE.Vector3(v.x, v.z||0, v.y));
-      if (ent.shape) pts.push(pts[0]); 
-      container.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), mat));
-    }
-    else if (ent.type === 'CIRCLE' || ent.type === 'ARC') {
-      const pts = [];
-      const s = ent.startAngle||0; const e = ent.endAngle||(Math.PI*2);
-      for (let i=0; i<=32; i++) {
-        const th = s + (e-s)*(i/32);
-        pts.push(new THREE.Vector3(
-          ent.center.x + Math.cos(th)*ent.radius,
-          ent.center.z||0,
-          ent.center.y + Math.sin(th)*ent.radius
-        ));
+    function DXFToThree(dxf) {
+      const container = new THREE.Group();
+      if (dxf.tables && dxf.tables.layer && dxf.tables.layer.layers) {
+        Object.entries(dxf.tables.layer.layers).forEach(([name, info]) => {
+          container.userData = container.userData || {};
+          container.userData.layers = container.userData.layers || {};
+          container.userData.layers[name] = { colorHex: getHexColorFromIndex(info.color||7), materials: [] };
+        });
       }
-      container.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), mat));
-    }
-  });
-  return { container, layerData };
-}
+      dxf.entities.forEach(ent => {
+        const lname = ent.layer || '0';
+        container.userData.layers = container.userData.layers || {};
+        if (!container.userData.layers[lname]) container.userData.layers[lname] = { colorHex: '#ffffff', materials: [] };
+        const hex = ent.colorIndex ? getHexColorFromIndex(ent.colorIndex) : container.userData.layers[lname].colorHex;
+        const mat = new THREE.LineBasicMaterial({ color: new THREE.Color(hex) });
+        container.userData.layers[lname].materials.push(mat);
 
-const canvas = document.getElementById('three-canvas');
-const viewer = document.getElementById('viewer');
-
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, logarithmicDepthBuffer: true });
-renderer.setPixelRatio(window.devicePixelRatio);
-renderer.outputEncoding = THREE.sRGBEncoding;
-renderer.localClippingEnabled = true;
-
-const scene = new THREE.Scene();
-
-const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 500000);
-camera.position.set(12, 12, 12);
-
-const controls = new THREE.OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true;
-controls.dampingFactor = 0.07;
-controls.enableZoom = true;
-controls.zoomSpeed = 1.15;
-controls.minDistance = 0.5;
-controls.maxDistance = 500000;
-controls.enablePan = true;
-controls.panSpeed = 0.8;
-controls.touches = {
-  ONE: THREE.TOUCH.ROTATE,
-  TWO: THREE.TOUCH.DOLLY_PAN
-};
-controls.mouseButtons = {
-  LEFT: null,
-  MIDDLE: null,
-  RIGHT: null
-};
-
-scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-const dl1 = new THREE.DirectionalLight(0xffffff, 0.8); dl1.position.set(20,40,20); scene.add(dl1);
-const dl2 = new THREE.DirectionalLight(0xaaccff, 0.4); dl2.position.set(-20,10,-20); scene.add(dl2);
-
-const gridMat = new THREE.MeshBasicMaterial({ color: 0x3b4456, transparent: true, opacity: 0, side: THREE.DoubleSide });
-const gridPlane = new THREE.Mesh(new THREE.PlaneGeometry(100,100), gridMat);
-gridPlane.rotation.x = Math.PI / 2;
-gridPlane.visible = false;
-scene.add(gridPlane);
-
-const roots = [];
-let selectedRoots = [];
-let idSeq = 1;
-
-let isDraggingBox = false;
-let isDraggingObjects = false;
-let moveModeEnabled = false;
-let startMousePixel = new THREE.Vector2();
-let currentMousePixel = new THREE.Vector2();
-let dragStartPosMap = new Map();
-let grabPlaneXY = new THREE.Plane(new THREE.Vector3(0,1,0), 0);
-let grabPlaneZ = new THREE.Plane();
-const raycaster = new THREE.Raycaster();
-
-let currentActiveSnapPoint = new THREE.Vector3();
-const snapMarkerGeo = new THREE.SphereGeometry(0.5, 16, 16);
-const snapMarkerMat = new THREE.MeshBasicMaterial({ color: 0xffff00, depthTest: false, transparent: false });
-const snapMarker = new THREE.Mesh(snapMarkerGeo, snapMarkerMat);
-snapMarker.renderOrder = 999;
-snapMarker.visible = false;
-scene.add(snapMarker);
-
-const clipPlane = new THREE.Plane(new THREE.Vector3(0, -1, 0), 0);
-let currentSecAxis = 'z';
-let secFlipped = false;
-
-const secGizmoGeo = new THREE.PlaneGeometry(1, 1);
-const secGizmoMat = new THREE.MeshBasicMaterial({
-  color: 0x5c88fc,
-  side: THREE.DoubleSide,
-  transparent: true,
-  opacity: 0.08,
-  depthWrite: false
-});
-const secGizmo = new THREE.Mesh(secGizmoGeo, secGizmoMat);
-const secGizmoEdge = new THREE.LineSegments(
-  new THREE.EdgesGeometry(secGizmoGeo),
-  new THREE.LineBasicMaterial({ color: 0x7da6ff, transparent: true, opacity: 0.95, depthTest: false })
-);
-secGizmoEdge.renderOrder = 998;
-secGizmo.add(secGizmoEdge);
-secGizmo.visible = false;
-scene.add(secGizmo);
-
-const transformControl = new THREE.TransformControls(camera, renderer.domElement);
-transformControl.size = 0.8;
-transformControl.attach(secGizmo);
-transformControl.visible = false;
-transformControl.enabled = false;
-scene.add(transformControl);
-
-transformControl.addEventListener('dragging-changed', event => {
-  controls.enabled = !event.value;
-});
-
-transformControl.addEventListener('change', () => {
-  if (document.getElementById('sec-enable').checked) {
-    updateClipPlane();
-    updateSectionUI();
-  }
-});
-
-let secGizmoDisplayEnabled = true;
-
-function getSectionCoordinate() {
-  if (currentSecAxis === 'x') return secGizmo.position.x;
-  if (currentSecAxis === 'y') return secGizmo.position.z;
-  return secGizmo.position.y;
-}
-
-function setSectionCoordinate(value) {
-  if (currentSecAxis === 'x') secGizmo.position.x = value;
-  else if (currentSecAxis === 'y') secGizmo.position.z = value;
-  else secGizmo.position.y = value;
-  updateClipPlane();
-  updateSectionUI();
-}
-
-function updateSectionUI() {
-  const axis = currentSecAxis.toUpperCase();
-  const direction = (secFlipped ? '+' : '-') + axis;
-  const value = getSectionCoordinate();
-  const status = document.getElementById('section-status');
-  const posInput = document.getElementById('sec-position');
-  const axisLabel = document.getElementById('sec-pos-axis');
-  if (status) status.innerHTML = `<div>축: <strong>${axis}</strong></div><div>방향: <strong>${direction}</strong></div><div>위치: <strong>${value.toFixed(2)}</strong></div>`;
-  if (posInput && document.activeElement !== posInput) posInput.value = value.toFixed(2);
-  if (axisLabel) axisLabel.textContent = axis;
-}
-
-function updateSectionGizmoVisibility() {
-  const enabled = document.getElementById('sec-enable').checked;
-  secGizmo.visible = enabled && secGizmoDisplayEnabled;
-  transformControl.visible = enabled && secGizmoDisplayEnabled;
-  transformControl.enabled = enabled && secGizmoDisplayEnabled;
-}
-
-function updateClipPlane() {
-  const normal = new THREE.Vector3();
-  if (currentSecAxis === 'x') normal.set(secFlipped ? 1 : -1, 0, 0);
-  else if (currentSecAxis === 'y') normal.set(0, 0, secFlipped ? 1 : -1);
-  else normal.set(0, secFlipped ? 1 : -1, 0);
-
-  clipPlane.normal.copy(normal);
-  clipPlane.constant = -normal.dot(secGizmo.position);
-}
-
-function updateSecGizmoOrientation() {
-  if (currentSecAxis === 'x') {
-    secGizmo.rotation.set(0, Math.PI / 2, 0);
-    transformControl.showX = true; transformControl.showY = false; transformControl.showZ = false;
-  } else if (currentSecAxis === 'y') {
-    secGizmo.rotation.set(0, 0, 0);
-    transformControl.showX = false; transformControl.showY = false; transformControl.showZ = true;
-  } else {
-    secGizmo.rotation.set(Math.PI / 2, 0, 0);
-    transformControl.showX = false; transformControl.showY = true; transformControl.showZ = false;
-  }
-  updateClipPlane();
-  updateSectionUI();
-}
-
-function applyClippingPlanes(root) {
-  const planes = document.getElementById('sec-enable').checked ? [clipPlane] : [];
-  root.traverse(c => {
-    if ((c.isMesh || c.isLine) && c.material) {
-      if (Array.isArray(c.material)) {
-        c.material.forEach(m => { m.clippingPlanes = planes; m.clipShadows = true; });
-      } else {
-        c.material.clippingPlanes = planes;
-        c.material.clipShadows = true;
-      }
-    }
-  });
-}
-
-function refreshAllClipping() {
-  roots.forEach(r => applyClippingPlanes(r));
-}
-
-function getSnappedVertex(hit) {
-  const obj = hit.object;
-  let closestVertex = null;
-  let minDist = Infinity;
-
-  if (!obj.geometry || !obj.geometry.attributes.position) return { point: null, distance: Infinity };
-  const pos = obj.geometry.attributes.position;
-
-  if (obj.isMesh && hit.face) {
-    const indices = [hit.face.a, hit.face.b, hit.face.c];
-    indices.forEach(idx => {
-      const v = new THREE.Vector3().fromBufferAttribute(pos, idx);
-      v.applyMatrix4(obj.matrixWorld);
-      const dist = v.distanceTo(hit.point);
-      if (dist < minDist) { minDist = dist; closestVertex = v; }
-    });
-  } else if (obj.isLine) {
-    let startIdx = 0;
-    let endIdx = pos.count - 1;
-    if (hit.index !== undefined) {
-       startIdx = Math.max(0, hit.index - 5);
-       endIdx = Math.min(pos.count - 1, hit.index + 5);
-    }
-    for(let idx = startIdx; idx <= endIdx; idx++) {
-      const v = new THREE.Vector3().fromBufferAttribute(pos, idx);
-      v.applyMatrix4(obj.matrixWorld);
-      const dist = v.distanceTo(hit.point);
-      if (dist < minDist) { minDist = dist; closestVertex = v; }
-    }
-  }
-  return { point: closestVertex, distance: minDist };
-}
- 
-raycaster.params.Line.threshold = 10.0; 
-
-const actionHistory = [];
-function pushHistory(action) {
-  actionHistory.push(action);
-  if (actionHistory.length > 50) actionHistory.shift();
-}
-function undo() {
-  if (actionHistory.length === 0) return;
-  const action = actionHistory.pop();
-  if (action.type === 'delete') {
-    action.objects.forEach(r => { scene.add(r); roots.push(r); });
-    clearSelection();
-  } else if (action.type === 'move') {
-    action.moves.forEach(m => { m.root.position.copy(m.oldPos); });
-  } else if (action.type === 'color') {
-    action.changes.forEach(c => {
-      c.root.userData.color = c.oldColor;
-      c.root.traverse(mesh => {
-        if (mesh.isMesh && mesh.material) {
-          const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
-          mats.forEach(m => m.color.set(c.oldColor));
-        }
-      });
-    });
-  } else if (action.type === 'opacity') {
-    action.changes.forEach(c => {
-      c.root.userData.opacity = c.oldOpacity;
-      c.root.traverse(mesh => {
-        if ((mesh.isMesh || mesh.isLine) && mesh.material) {
-          const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
-          mats.forEach(m => {
-            m.transparent = c.oldOpacity < 1.0;
-            m.opacity = c.oldOpacity;
-            m.needsUpdate = true;
-          });
-        }
-      });
-    });
-  }
-  updateUI();
-}
-
-const listEl = document.getElementById('object-list');
-const dropOverlay = document.getElementById('drop-overlay');
-const propBox = document.getElementById('properties-box');
-const propColorRow = document.getElementById('prop-color-row');
-const propColorHex = document.getElementById('prop-color-hex');
-const propColorInput = document.getElementById('prop-color');
-const propOpacityRow = document.getElementById('prop-opacity-row');
-const propOpacityInput = document.getElementById('prop-opacity');
-const propOpacityVal = document.getElementById('prop-opacity-val');
-const propLayers = document.getElementById('prop-layers');
-const layerListContainer = document.getElementById('layer-list-container');
-
-const posInputs = { 
-  x: document.getElementById('pos-x'), 
-  y: document.getElementById('pos-y'), 
-  z: document.getElementById('pos-z') 
-};
-const selBox = document.getElementById('selection-box');
-const axisBadge = document.getElementById('axis-badge');
-
-function resize() {
-  renderer.setSize(viewer.clientWidth, viewer.clientHeight);
-  camera.aspect = viewer.clientWidth / viewer.clientHeight;
-  camera.updateProjectionMatrix();
-}
-window.addEventListener('resize', resize);
-resize();
-
-function animate() {
-  requestAnimationFrame(animate);
-  controls.update();
-  renderer.render(scene, camera);
-}
-animate();
-
-function getNDC(pixelX, pixelY) {
-  const r = canvas.getBoundingClientRect();
-  return new THREE.Vector2(((pixelX - r.left)/r.width)*2-1, -((pixelY - r.top)/r.height)*2+1);
-}
-
-function clearSelection() {
-  selectedRoots = [];
-  updateUI();
-}
-
-function addToSelection(root) {
-  return;
-}
-
-function removeFromSelection(root) {
-  return;
-}
-
-function highlightSelected() {
-  roots.forEach(r => {
-    r.traverse(c => {
-      if (c.isMesh && c.material) {
-        const mats = Array.isArray(c.material) ? c.material : [c.material];
-        mats.forEach(m => {
-          if (m.emissive) {
-            m.emissive.setHex(0x000000);
-            m.emissiveIntensity = 0;
+        if (ent.type === 'LINE' && ent.vertices && ent.vertices.length >= 2) {
+          const geo = new THREE.BufferGeometry().setFromPoints([
+            new THREE.Vector3(ent.vertices[0].x, ent.vertices[0].z||0, ent.vertices[0].y),
+            new THREE.Vector3(ent.vertices[1].x, ent.vertices[1].z||0, ent.vertices[1].y)
+          ]);
+          container.add(new THREE.Line(geo, mat));
+        } else if ((ent.type === 'LWPOLYLINE' || ent.type === 'POLYLINE') && ent.vertices) {
+          const pts = ent.vertices.map(v => new THREE.Vector3(v.x, v.z||0, v.y));
+          if (ent.shape && pts.length) pts.push(pts[0].clone());
+          container.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), mat));
+        } else if ((ent.type === 'CIRCLE' || ent.type === 'ARC') && ent.center) {
+          const pts = [];
+          const s = ent.startAngle || 0;
+          const e = ent.endAngle || (Math.PI * 2);
+          for (let i=0; i<=32; i++) {
+            const th = s + (e-s)*(i/32);
+            pts.push(new THREE.Vector3(ent.center.x + Math.cos(th)*ent.radius, ent.center.z||0, ent.center.y + Math.sin(th)*ent.radius));
           }
-        });
-      } 
-      else if (c.isLine && c.material) {
-        const mats = Array.isArray(c.material) ? c.material : [c.material];
-        mats.forEach(m => {
-          m.color.setHex(m.userData.originalColor || 0xffffff);
-        });
-      }
-    });
-  });
-}
-
-const tablePopup = document.getElementById('table-popup');
-const closeTableBtn = document.getElementById('close-table-popup');
-const popupHeader = document.getElementById('popup-header');
-
-let isDraggingPopup = false;
-let popupDragOffsetX = 0;
-let popupDragOffsetY = 0;
-
-popupHeader.addEventListener('pointerdown', (e) => {
-  if (e.target.id === 'close-table-popup' || e.target.id === 'toggle-table-controls') return;
-  isDraggingPopup = true;
-  popupHeader.setPointerCapture(e.pointerId);
-  popupHeader.style.cursor = 'grabbing';
-  const rect = tablePopup.getBoundingClientRect();
-  popupDragOffsetX = e.clientX - rect.left;
-  popupDragOffsetY = e.clientY - rect.top;
-});
-
-popupHeader.addEventListener('pointermove', (e) => {
-  if (!isDraggingPopup) return;
-  tablePopup.style.left = (e.clientX - popupDragOffsetX) + 'px';
-  tablePopup.style.top = (e.clientY - popupDragOffsetY) + 'px';
-});
-
-popupHeader.addEventListener('pointerup', (e) => {
-  isDraggingPopup = false;
-  popupHeader.releasePointerCapture(e.pointerId);
-  popupHeader.style.cursor = 'grab';
-});
-
-let isTablePopupClosedManually = false;
-
-closeTableBtn.addEventListener('click', () => {
-  tablePopup.style.display = 'none';
-  isTablePopupClosedManually = true;
-});
-
-const toggleTableControlsBtn = document.getElementById('toggle-table-controls');
-const tableControlsContainer = document.getElementById('table-controls');
-
-toggleTableControlsBtn.addEventListener('click', () => {
-  tableControlsContainer.classList.toggle('show');
-});
-
-function buildTableUI(root) {
-  const colgroup = document.getElementById('props-colgroup');
-  const thead = document.getElementById('props-thead');
-  const tbody = document.getElementById('props-tbody');
-  
-  colgroup.innerHTML = '';
-  thead.innerHTML = '';
-  tbody.innerHTML = '';
-
-  let data = root.userData.tableData;
-  if (!data || !data.length) {
-    data = [['속성명', '값'], ['', '']];
-    root.userData.tableData = data;
-  }
-  let widths = root.userData.colWidths;
-  if (!widths || widths.length !== data[0].length) {
-    widths = Array(data[0].length).fill(110); 
-    root.userData.colWidths = widths;
-  }
-
-  const colElements = [];
-  widths.forEach((w) => {
-    const col = document.createElement('col');
-    col.style.width = w + 'px';
-    colgroup.appendChild(col);
-    colElements.push(col);
-  });
-
-  const createCellInput = (r, c, val) => {
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.value = val;
-    input.className = 'table-cell-input';
-    if (r === 0) input.classList.add('header-input');
-    input.addEventListener('input', e => {
-      root.userData.tableData[r][c] = e.target.value;
-    });
-    return input;
-  };
-
-  const trHead = document.createElement('tr');
-  data[0].forEach((cellVal, colIdx) => {
-    const th = document.createElement('th');
-    th.style.position = 'relative';
-    th.style.border = '1px solid #2f3744';
-    th.style.padding = '0';
-    th.style.backgroundColor = '#171b22';
-    th.style.overflow = 'hidden';
-    th.appendChild(createCellInput(0, colIdx, cellVal));
-
-    const resizer = document.createElement('div');
-    resizer.style.position = 'absolute';
-    resizer.style.right = '0px';
-    resizer.style.top = '0';
-    resizer.style.bottom = '0';
-    resizer.style.width = '8px';
-    resizer.style.cursor = 'col-resize';
-    resizer.style.zIndex = '10';
-    
-    const handle = document.createElement('div');
-    handle.style.width = '2px';
-    handle.style.height = '12px';
-    handle.style.background = '#8b95a5';
-    handle.style.margin = '4px auto 0 auto';
-    resizer.appendChild(handle);
-
-    resizer.addEventListener('mousedown', e => {
-      e.preventDefault();
-      e.stopPropagation();
-      let startX = e.clientX;
-      let startWidth = colElements[colIdx].getBoundingClientRect().width;
-      
-      function onMouseMove(moveEvent) {
-        let newWidth = startWidth + (moveEvent.clientX - startX);
-        if (newWidth < 15) newWidth = 15;
-        colElements[colIdx].style.width = newWidth + 'px';
-        root.userData.colWidths[colIdx] = newWidth;
-      }
-      function onMouseUp() {
-        document.removeEventListener('mousemove', onMouseMove);
-        document.removeEventListener('mouseup', onMouseUp);
-      }
-      document.addEventListener('mousemove', onMouseMove);
-      document.addEventListener('mouseup', onMouseUp);
-    });
-    
-    th.appendChild(resizer);
-    trHead.appendChild(th);
-  });
-  thead.appendChild(trHead);
-
-  for (let r = 1; r < data.length; r++) {
-    const tr = document.createElement('tr');
-    data[r].forEach((cellVal, colIdx) => {
-      const td = document.createElement('td');
-      td.style.border = '1px solid #2f3744';
-      td.style.padding = '0';
-      td.style.overflow = 'hidden';
-      td.appendChild(createCellInput(r, colIdx, cellVal));
-      tr.appendChild(td);
-    });
-    tbody.appendChild(tr);
-  }
-}
-
-document.getElementById('btn-add-row').addEventListener('click', () => {
-  if (selectedRoots.length !== 1) return;
-  const root = selectedRoots[0];
-  const cols = root.userData.tableData[0].length;
-  root.userData.tableData.push(Array(cols).fill(''));
-  buildTableUI(root);
-});
-
-document.getElementById('btn-add-col').addEventListener('click', () => {
-  if (selectedRoots.length !== 1) return;
-  const root = selectedRoots[0];
-  root.userData.tableData.forEach(row => row.push(''));
-  root.userData.colWidths.push(110);
-  buildTableUI(root);
-});
-
-function updateTablePopup() {
-  tablePopup.style.display = 'none';
-}
-
-const listPopupEl = document.getElementById('list-popup');
-const filePopupEl = document.getElementById('file-popup');
-const sectionPopupEl = document.getElementById('section-popup');
-
-function updateUI() {
-  selectedRoots = [];
-  snapMarker.visible = false;
-  dropOverlay.classList.toggle('hidden', roots.length > 0);
-  listEl.style.display = 'none';
-  listEl.innerHTML = '';
-
-  roots.forEach(root => {
-    const item = document.createElement('div');
-    item.className = 'list-item';
-    
-    const name = document.createElement('span'); 
-    name.textContent = root.userData.name;
-    item.appendChild(name);
-    listEl.appendChild(item);
-  });
-
-  propBox.style.display = 'none';
-  highlightSelected();
-  updateTablePopup();
-}
-
-function pickRootWithPoint(pixelX, pixelY) {
-  raycaster.setFromCamera(getNDC(pixelX, pixelY), camera);
-  const hits = raycaster.intersectObjects(roots, true);
-  if (!hits.length) return null;
-  let obj = hits[0].object;
-  while (obj && !obj.userData.isRoot) { if (obj.parent === scene) break; obj = obj.parent; }
-  return { root: obj, point: hits[0].point, rawHit: hits[0] };
-}
-
-function performBoxSelection() {
-  return;
-}
-
-posInputs.x.addEventListener('input', () => {});
-posInputs.y.addEventListener('input', () => {});
-posInputs.z.addEventListener('input', () => {});
-
-let opacityHistoryPending = false;
-let oldOpacities = [];
-propOpacityInput.addEventListener('change', () => {
-  if (opacityHistoryPending) { pushHistory({ type: 'opacity', changes: oldOpacities }); opacityHistoryPending = false; }
-});
-
-propOpacityInput.addEventListener('input', e => {
-  if (selectedRoots.length === 0) return;
-  if (!opacityHistoryPending) {
-    oldOpacities = selectedRoots.map(r => ({ root: r, oldOpacity: r.userData.opacity !== undefined ? r.userData.opacity : 1.0 }));
-    opacityHistoryPending = true;
-  }
-  const op = parseFloat(e.target.value);
-  propOpacityVal.textContent = Math.round(op * 100) + '%';
-
-  selectedRoots.forEach(root => {
-    root.userData.opacity = op;
-    root.traverse(c => {
-      if ((c.isMesh || c.isLine) && c.material) {
-        if (!c.userData.materialCloned) {
-          c.material = Array.isArray(c.material) ? c.material.map(m=>m.clone()) : c.material.clone();
-          c.userData.materialCloned = true;
+          container.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), mat));
         }
-        const mats = Array.isArray(c.material) ? c.material : [c.material];
-        mats.forEach(m => {
-          m.transparent = op < 1.0;
-          m.opacity = op;
-          m.needsUpdate = true;
-        });
-      }
-    });
-  });
-});
-
-let coordOldPos = null;
-['x','y','z'].forEach(axis => {
-  posInputs[axis].addEventListener('focus', () => {
-    if (selectedRoots.length === 1) coordOldPos = selectedRoots[0].position.clone();
-  });
-  posInputs[axis].addEventListener('change', () => {
-    if (selectedRoots.length === 1 && coordOldPos) {
-      if (coordOldPos.distanceTo(selectedRoots[0].position) > 0.001) {
-        pushHistory({ type: 'move', moves: [{ root: selectedRoots[0], oldPos: coordOldPos }] });
-      }
-      coordOldPos = selectedRoots[0].position.clone();
-    }
-  });
-});
-
-let colorHistoryPending = false;
-let oldColors = [];
-propColorInput.addEventListener('change', () => {
-  if (colorHistoryPending) { pushHistory({ type: 'color', changes: oldColors }); colorHistoryPending = false; }
-});
-propColorInput.addEventListener('input', e => {
-  if (selectedRoots.length === 0) return;
-  if (!colorHistoryPending) {
-    oldColors = selectedRoots.map(r => ({ root: r, oldColor: r.userData.color || '#ffffff' }));
-    colorHistoryPending = true;
-  }
-  const hex = e.target.value; 
-  propColorHex.textContent = hex.toUpperCase(); 
-  selectedRoots.forEach(root => {
-    if (root.userData.type !== 'obj' && root.userData.type !== 'gltf') return;
-    root.userData.color = hex;
-    root.traverse(c => {
-      if (c.isMesh && c.material) {
-        if (!c.userData.materialCloned) {
-          c.material = Array.isArray(c.material) ? c.material.map(m=>m.clone()) : c.material.clone();
-          c.userData.materialCloned = true;
-        }
-        if(Array.isArray(c.material)) c.material.forEach(m=>m.color.set(hex)); else c.material.color.set(hex);
-      }
-    });
-  });
-});
-
-viewer.addEventListener('pointerdown', e => {
-  if (e.pointerType === 'touch') return;
-  if (e.button !== 0) return; 
-  if (e.target.closest && (e.target.closest('#view-cube-panel') || e.target.closest('#topbar'))) return;
-});
-
-viewer.addEventListener('pointermove', e => {
-  if (e.pointerType === 'touch') return;
-  currentMousePixel.set(e.clientX, e.clientY);
-});
-
-viewer.addEventListener('pointerup', e => {
-  if (e.pointerType === 'touch') return;
-  if (e.button !== 0) return;
-});
-
-document.addEventListener('keydown', e => {
-  if (e.ctrlKey && (e.key === 'z' || e.key === 'Z') && !isDraggingObjects) {
-    undo();
-    return;
-  }
-});
-
-function fitCameraToScene() {
-  if (!roots.length) return;
-  const box = new THREE.Box3(); 
-  roots.forEach(r => box.expandByObject(r));
-  if (box.isEmpty()) return;
-  
-  const size = box.getSize(new THREE.Vector3()); 
-  const center = box.getCenter(new THREE.Vector3());
-  const maxDim = Math.max(size.x, size.y, size.z, 1);
-  
-  const fovRad = camera.fov * (Math.PI / 180);
-  let dist = (maxDim / 2) / Math.tan(fovRad / 2);
-  dist *= 2.2; 
-  
-  camera.far = Math.max(500000, dist * 10);
-  camera.updateProjectionMatrix();
-  controls.maxDistance = dist * 10;
-
-  camera.position.set(center.x + dist * 0.7, center.y + dist * 0.6, center.z + dist * 0.7);
-  controls.target.copy(center); 
-  controls.update();
-
-  const gizmoSize = Math.max(maxDim * 0.055, 1);
-  secGizmo.scale.set(gizmoSize, gizmoSize, gizmoSize);
-  secGizmo.position.copy(center);
-  updateClipPlane();
-  updateSectionUI();
-}
-
-function processLoadedOBJ(obj, filename, rawContent) {
-  obj.userData.rawContent = rawContent;
-  obj.userData.isRoot=true; obj.userData.id=idSeq++; obj.userData.name=filename; obj.userData.type='obj';
-  const defaultHex = '#2f887b'; 
-  obj.userData.color = defaultHex;
-
-  const edgeMaterial = new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 1 });
-
-  obj.traverse(c => {
-    if (c.isMesh) {
-      if (!c.material || (Array.isArray(c.material)&&c.material.length===0)) c.material = new THREE.MeshStandardMaterial({ color: defaultHex, metalness: 0.1, roughness: 0.6 });
-      else if (!Array.isArray(c.material)) c.material.color.set(defaultHex);
-      const mats = Array.isArray(c.material) ? c.material : [c.material];
-      mats.forEach(m => {
-        m.polygonOffset = true;
-        m.polygonOffsetFactor = obj.userData.id * -1;
-        m.polygonOffsetUnits = obj.userData.id * -1;
       });
-
-      const edgesGeo = new THREE.EdgesGeometry(c.geometry, 25);
-      const line = new THREE.LineSegments(edgesGeo, edgeMaterial);
-      line.userData.isModelEdge = true;
-      line.visible = document.getElementById('edge-enable') ? document.getElementById('edge-enable').checked : true;
-      c.add(line);
+      return container;
     }
-  });
 
-  finalizeLoad(obj);
-}
+    const canvas = document.getElementById('three-canvas');
+    const viewer = document.getElementById('viewer');
+    const loadingEl = document.getElementById('loading');
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, logarithmicDepthBuffer: true });
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.outputEncoding = THREE.sRGBEncoding;
 
-function processLoadedGLTF(gltf, filename, rawBufferOrString) {
-  const obj = gltf.scene || gltf.scenes[0];
-  obj.userData.rawContent = rawBufferOrString;
-  obj.userData.isRoot = true; 
-  obj.userData.id = idSeq++; 
-  obj.userData.name = filename; 
-  obj.userData.type = 'gltf';
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 500000);
+    camera.position.set(12, 12, 12);
 
-  obj.scale.set(1000, 1000, 1000);
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.07;
+    controls.enableZoom = true;
+    controls.enablePan = true;
+    controls.touches = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN };
+    controls.mouseButtons = { LEFT: null, MIDDLE: null, RIGHT: null };
 
-  const edgeMaterial = new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 1 });
+    scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+    const dl1 = new THREE.DirectionalLight(0xffffff, 0.85); dl1.position.set(20,40,20); scene.add(dl1);
+    const dl2 = new THREE.DirectionalLight(0xaaccff, 0.35); dl2.position.set(-20,10,-20); scene.add(dl2);
 
-  obj.traverse(c => {
-    if (c.isMesh) {
-      const mats = Array.isArray(c.material) ? c.material : [c.material];
-      mats.forEach(m => {
-        m.polygonOffset = true;
-        m.polygonOffsetFactor = obj.userData.id * -1;
-        m.polygonOffsetUnits = obj.userData.id * -1;
-      });
+    const roots = [];
 
-      const edgesGeo = new THREE.EdgesGeometry(c.geometry, 25);
-      const line = new THREE.LineSegments(edgesGeo, edgeMaterial);
-      line.userData.isModelEdge = true;
-      line.visible = document.getElementById('edge-enable') ? document.getElementById('edge-enable').checked : true;
-      c.add(line);
+    function resize() {
+      renderer.setSize(viewer.clientWidth, viewer.clientHeight);
+      camera.aspect = viewer.clientWidth / viewer.clientHeight;
+      camera.updateProjectionMatrix();
     }
-  });
+    window.addEventListener('resize', resize);
+    resize();
 
-  finalizeLoad(obj);
-}
-
-function processLoadedDXF(dxfObj, filename, rawContent) {
-  const res = DXFToThree(dxfObj);
-  const obj = res.container;
-  obj.userData.isRoot=true; obj.userData.id=idSeq++; obj.userData.name=filename; obj.userData.type='dxf'; obj.userData.layers = res.layerData; obj.userData.rawContent = rawContent;
-
-  obj.traverse(c => { 
-    if(c.isLine) {
-      c.frustumCulled = false; 
-      c.geometry.computeBoundingSphere();
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
     }
-  });
+    animate();
 
-  finalizeLoad(obj);
-}
+    function setModelEdgesVisible(visible) {
+      roots.forEach(root => root.traverse(child => {
+        if (child.userData && child.userData.isModelEdge) child.visible = visible;
+      }));
+    }
 
-function finalizeLoad(obj) {
-  obj.userData.initialPosition = obj.position.clone();
-  applyClippingPlanes(obj);
-  scene.add(obj); roots.push(obj); 
-  fitCameraToScene();
-  updateUI();
-}
+    function fitCameraToScene() {
+      if (!roots.length) return;
+      const box = new THREE.Box3();
+      roots.forEach(r => box.expandByObject(r));
+      if (box.isEmpty()) return;
+      const size = box.getSize(new THREE.Vector3());
+      const center = box.getCenter(new THREE.Vector3());
+      const maxDim = Math.max(size.x, size.y, size.z, 1);
+      const fovRad = camera.fov * (Math.PI / 180);
+      let dist = (maxDim / 2) / Math.tan(fovRad / 2);
+      dist *= 2.2;
+      camera.far = Math.max(500000, dist * 10);
+      camera.updateProjectionMatrix();
+      controls.maxDistance = dist * 10;
+      camera.position.set(center.x + dist * 0.7, center.y + dist * 0.6, center.z + dist * 0.7);
+      controls.target.copy(center);
+      controls.update();
+    }
 
-async function handleFiles(files) {
-  const validFiles = Array.from(files).filter(f => f.name.match(/\.(obj|dxf|json|gltf|glb)$/i));
-  if (!validFiles.length) return;
-  document.getElementById('loading').className = 'visible';
-  for (const f of validFiles) {
-    try {
-      const ext = f.name.split('.').pop().toLowerCase();
-      
-      if (ext === 'glb' || ext === 'gltf') {
-        const buffer = await new Promise((res) => { const r = new FileReader(); r.onload = e => res(e.target.result); r.readAsArrayBuffer(f); });
-        new THREE.GLTFLoader().parse(buffer, '', gltf => processLoadedGLTF(gltf, f.name.replace(/\.[^/.]+$/, ""), buffer));
-      } else {
-        const txt = await new Promise((res) => { const r = new FileReader(); r.onload = e => res(e.target.result); r.readAsText(f); });
-        if (ext === 'json') {
-          const data = JSON.parse(txt);
-          loadProject(data, true);
-        } else if (ext === 'obj') {
-          const obj = new THREE.OBJLoader().parse(txt);
-          processLoadedOBJ(obj, f.name.replace(/\.[^/.]+$/, ""), txt);
-        } else if (ext === 'dxf') {
-          processLoadedDXF(new DxfParser().parseSync(txt), f.name.replace(/\.[^/.]+$/, ""), txt);
+    function finalizeLoad(obj) {
+      scene.add(obj);
+      roots.push(obj);
+      fitCameraToScene();
+      setModelEdgesVisible(document.getElementById('edge-enable').checked);
+    }
+
+    function processLoadedOBJ(obj, filename) {
+      obj.userData.name = filename;
+      const edgeMaterial = new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 1 });
+      obj.traverse(c => {
+        if (c.isMesh) {
+          if (!c.material) c.material = new THREE.MeshStandardMaterial({ color: '#2f887b', metalness: 0.1, roughness: 0.6 });
+          else if (!Array.isArray(c.material)) c.material.color && c.material.color.set('#2f887b');
+          const edgesGeo = new THREE.EdgesGeometry(c.geometry, 25);
+          const line = new THREE.LineSegments(edgesGeo, edgeMaterial);
+          line.userData.isModelEdge = true;
+          c.add(line);
         }
-      }
-    } catch (e) { alert(`로드 실패: ${f.name}`); console.error(e); }
-  }
-  document.getElementById('loading').className = '';
-}
+      });
+      finalizeLoad(obj);
+    }
 
-function saveProject() {
-  const data = roots.map(r => {
-    const currentOpacity = r.userData.opacity !== undefined ? r.userData.opacity : 1.0;
+    function processLoadedGLTF(gltf, filename) {
+      const obj = gltf.scene || gltf.scenes[0];
+      obj.userData.name = filename;
+      obj.scale.set(1000, 1000, 1000);
+      const edgeMaterial = new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 1 });
+      obj.traverse(c => {
+        if (c.isMesh) {
+          const edgesGeo = new THREE.EdgesGeometry(c.geometry, 25);
+          const line = new THREE.LineSegments(edgesGeo, edgeMaterial);
+          line.userData.isModelEdge = true;
+          c.add(line);
+        }
+      });
+      finalizeLoad(obj);
+    }
 
-    return {
-      name: r.userData.name,
-      type: r.userData.type,
-      rawContent: r.userData.rawContent,
-      position: { x: r.position.x, y: r.position.y, z: r.position.z },
-      color: r.userData.color,
-      opacity: currentOpacity,
-      tableData: r.userData.tableData,
-      colWidths: r.userData.colWidths,
-      layers: r.userData.type === 'dxf' && r.userData.layers 
-        ? Object.fromEntries(Object.entries(r.userData.layers).map(([k, v]) => [k, { colorHex: v.colorHex }])) 
-        : null
-    };
-  });
+    function processLoadedDXF(dxfObj, filename) {
+      const obj = DXFToThree(dxfObj);
+      obj.userData.name = filename;
+      obj.traverse(c => { if (c.isLine) c.frustumCulled = false; });
+      finalizeLoad(obj);
+    }
 
-  const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'project_settings.json';
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-function loadProject(data, replaceExisting = true) {
-  if (replaceExisting) {
-    roots.forEach(r => scene.remove(r));
-    roots.length = 0;
-    clearSelection();
-  }
-
-  data.forEach(item => {
-    let obj;
-    if (item.type === 'obj') {
-      obj = new THREE.OBJLoader().parse(item.rawContent);
-      processLoadedOBJ(obj, item.name, item.rawContent);
-    } else if (item.type === 'dxf') {
-      const parsed = new DxfParser().parseSync(item.rawContent);
-      processLoadedDXF(parsed, item.name, item.rawContent);
-    } else if (item.type === 'gltf') {
-      new THREE.GLTFLoader().parse(item.rawContent, '', gltf => {
-        processLoadedGLTF(gltf, item.name, item.rawContent);
-        const newObj = roots[roots.length - 1];
-        if (!newObj) return;
-        newObj.position.set(item.position.x, item.position.y, item.position.z);
-        if (item.tableData) newObj.userData.tableData = item.tableData;
-        if (item.colWidths) newObj.userData.colWidths = item.colWidths;
-        if (item.opacity !== undefined) {
-          newObj.userData.opacity = item.opacity;
-          newObj.traverse(c => {
-            if ((c.isMesh || c.isLine) && c.material) {
-              if (!c.userData.materialCloned) {
-                c.material = Array.isArray(c.material) ? c.material.map(m => m.clone()) : c.material.clone();
-                c.userData.materialCloned = true;
+    async function loadModelFromURL(url, filename) {
+      try {
+        loadingEl.classList.add('visible');
+        const ext = filename.split('.').pop().toLowerCase();
+        if (ext === 'glb' || ext === 'gltf') {
+          const response = await fetch(url);
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const buffer = await response.arrayBuffer();
+          new THREE.GLTFLoader().parse(buffer, '', gltf => processLoadedGLTF(gltf, filename.replace(/\.[^/.]+$/, '')));
+        } else {
+          const response = await fetch(url);
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const text = await response.text();
+          if (ext === 'obj') {
+            processLoadedOBJ(new THREE.OBJLoader().parse(text), filename.replace(/\.[^/.]+$/, ''));
+          } else if (ext === 'dxf') {
+            processLoadedDXF(new DxfParser().parseSync(text), filename.replace(/\.[^/.]+$/, ''));
+          } else if (ext === 'json') {
+            const data = JSON.parse(text);
+            if (Array.isArray(data)) {
+              for (const item of data) {
+                if (item.type === 'obj' && item.rawContent) processLoadedOBJ(new THREE.OBJLoader().parse(item.rawContent), item.name || 'OBJ');
+                else if (item.type === 'dxf' && item.rawContent) processLoadedDXF(new DxfParser().parseSync(item.rawContent), item.name || 'DXF');
+                else if (item.type === 'gltf' && item.rawContent) {
+                  new THREE.GLTFLoader().parse(item.rawContent, '', gltf => processLoadedGLTF(gltf, item.name || 'GLTF'));
+                }
               }
-              const mats = Array.isArray(c.material) ? c.material : [c.material];
-              mats.forEach(m => {
-                m.transparent = item.opacity < 1.0;
-                m.opacity = item.opacity;
-                m.needsUpdate = true;
-              });
             }
-          });
-        }
-        if (item.color) {
-          newObj.userData.color = item.color;
-          newObj.traverse(c => {
-            if (c.isMesh && c.material) {
-              if (!c.userData.materialCloned) {
-                c.material = Array.isArray(c.material) ? c.material.map(m => m.clone()) : c.material.clone();
-                c.userData.materialCloned = true;
-              }
-              const mats = Array.isArray(c.material) ? c.material : [c.material];
-              mats.forEach(m => m.color.set(item.color));
-            }
-          });
-        }
-        fitCameraToScene();
-        updateUI();
-      });
-      return;
-    }
-
-    const newObj = roots[roots.length - 1];
-    if (!newObj) return;
-
-    newObj.position.set(item.position.x, item.position.y, item.position.z);
-    if (item.tableData) newObj.userData.tableData = item.tableData;
-    if (item.colWidths) newObj.userData.colWidths = item.colWidths;
-
-    if (item.opacity !== undefined) {
-      newObj.userData.opacity = item.opacity;
-      newObj.traverse(c => {
-        if ((c.isMesh || c.isLine) && c.material) {
-          if (!c.userData.materialCloned) {
-            c.material = Array.isArray(c.material) ? c.material.map(m => m.clone()) : c.material.clone();
-            c.userData.materialCloned = true;
           }
-          const mats = Array.isArray(c.material) ? c.material : [c.material];
-          mats.forEach(m => {
-            m.transparent = item.opacity < 1.0;
-            m.opacity = item.opacity;
-            m.needsUpdate = true;
-          });
         }
-      });
-    }
-
-    if ((item.type === 'obj' || item.type === 'gltf') && item.color) {
-      newObj.userData.color = item.color;
-      newObj.traverse(c => {
-        if (c.isMesh && c.material) {
-          if (!c.userData.materialCloned) {
-            c.material = Array.isArray(c.material) ? c.material.map(m => m.clone()) : c.material.clone();
-            c.userData.materialCloned = true;
-          }
-          const mats = Array.isArray(c.material) ? c.material : [c.material];
-          mats.forEach(m => m.color.set(item.color));
-        }
-      });
-    }
-
-    if (item.type === 'dxf' && item.layers) {
-      newObj.userData.layers = newObj.userData.layers || {};
-      Object.entries(item.layers).forEach(([lname, ldata]) => {
-        if (newObj.userData.layers[lname]) {
-          newObj.userData.layers[lname].colorHex = ldata.colorHex;
-          newObj.userData.layers[lname].materials.forEach(m => {
-            m.color.set(ldata.colorHex);
-            m.userData.originalColor = m.color.getHex();
-          });
-        }
-      });
-    }
-  });
-
-  fitCameraToScene();
-  updateUI();
-}
-
-document.getElementById('btn-save-project').addEventListener('click', saveProject);
-document.getElementById('file-input').addEventListener('change', e => { handleFiles(e.target.files); e.target.value=''; });
-viewer.addEventListener('dragover', e => e.preventDefault());
-viewer.addEventListener('drop', e => { e.preventDefault(); handleFiles(e.dataTransfer.files); });
-
-const duration = 600;
-let animStart = 0;
-let animating = false;
-let startPos = new THREE.Vector3();
-let targetPos = new THREE.Vector3();
-let targetTarget = new THREE.Vector3();
-
-function smoothStep(t) { return t * t * (3 - 2 * t); }
-
-function startViewTransition(pos, target) {
-  animStart = performance.now();
-  startPos.copy(camera.position);
-  targetPos.copy(pos);
-  targetTarget.copy(target);
-  animating = true;
-  requestAnimationFrame(updateViewTransition);
-}
-
-function updateViewTransition(time) {
-  if (!animating) return;
-  let t = (time - animStart) / duration;
-  if (t >= 1) {
-    t = 1; animating = false;
-    camera.position.copy(targetPos);
-    controls.target.copy(targetTarget);
-    controls.update();
-  } else {
-    const f = smoothStep(t);
-    camera.position.lerpVectors(startPos, targetPos, f);
-    controls.update();
-    requestAnimationFrame(updateViewTransition);
-  }
-}
-
-function getDist() {
-  if (!roots.length) return 50;
-  const b = new THREE.Box3(); roots.forEach(r => b.expandByObject(r));
-  const s = b.getSize(new THREE.Vector3());
-  const maxDim = Math.max(s.x, s.y, s.z, 1);
-  const fovRad = camera.fov * (Math.PI / 180);
-  return ((maxDim / 2) / Math.tan(fovRad / 2)) * 2.2;
-}
-
-function getCenter() {
-  if (!roots.length) return new THREE.Vector3(0,0,0);
-  const b = new THREE.Box3(); roots.forEach(r => b.expandByObject(r));
-  return b.getCenter(new THREE.Vector3());
-}
-
-document.getElementById('vc-top').onclick = () => { const d = getDist(), c = getCenter(); startViewTransition(new THREE.Vector3(c.x, c.y + d, c.z), c); };
-document.getElementById('vc-left').onclick = () => { const d = getDist(), c = getCenter(); startViewTransition(new THREE.Vector3(c.x - d, c.y, c.z), c); };
-document.getElementById('vc-front').onclick = () => { const d = getDist(), c = getCenter(); startViewTransition(new THREE.Vector3(c.x, c.y, c.z + d), c); };
-document.getElementById('vc-right').onclick = () => { const d = getDist(), c = getCenter(); startViewTransition(new THREE.Vector3(c.x + d, c.y, c.z), c); };
-document.getElementById('vc-back').onclick = () => { const d = getDist(), c = getCenter(); startViewTransition(new THREE.Vector3(c.x, c.y, c.z - d), c); };
-document.getElementById('vc-home').onclick = () => { const d = getDist(), c = getCenter(); startViewTransition(new THREE.Vector3(c.x + d*0.7, c.y + d*0.6, c.z + d*0.7), c); };
-
-document.getElementById('bg-color').addEventListener('input', e => {
-  const hex = e.target.value;
-  document.getElementById('bg-color-display').style.backgroundColor = hex;
-  document.body.style.background = hex;
-});
-</script>
-
-<script>
-  const btnToggleFile = document.getElementById('btn-toggle-file');
-  const btnToggleList = document.getElementById('btn-toggle-list');
-  const btnToggleMove = document.getElementById('btn-toggle-move');
-  const btnToggleSection = document.getElementById('btn-toggle-section');
-  const btnToggleSettings = document.getElementById('btn-toggle-settings');
-  const settingsPopupEl = document.getElementById('settings-popup');
-  const edgeEnableInput = document.getElementById('edge-enable');
-  const disabledFeatureButtons = [btnToggleFile, btnToggleList, btnToggleMove, btnToggleSection];
-
-  disabledFeatureButtons.forEach(btn => {
-    if (!btn) return;
-    btn.classList.add('disabled');
-    btn.setAttribute('aria-disabled', 'true');
-  });
-
-  function setModelEdgesVisible(visible) {
-    roots.forEach(root => root.traverse(child => {
-      if (child.userData && child.userData.isModelEdge) child.visible = visible;
-    }));
-  }
-
-  edgeEnableInput.addEventListener('change', e => setModelEdgesVisible(e.target.checked));
-
-  btnToggleSettings.addEventListener('click', () => {
-    const willOpen = settingsPopupEl.style.display === 'none' || settingsPopupEl.style.display === '';
-    settingsPopupEl.style.display = willOpen ? 'flex' : 'none';
-    btnToggleSettings.classList.toggle('active', willOpen);
-    filePopupEl.style.display = 'none';
-    listPopupEl.style.display = 'none';
-    sectionPopupEl.style.display = 'none';
-    btnToggleSection.classList.remove('active');
-    updateTablePopup();
-  });
-
-  btnToggleMove.addEventListener('click', () => {
-    moveModeEnabled = false;
-    btnToggleMove.classList.remove('active');
-    btnToggleMove.title = '객체 이동 기능 비활성화';
-    isDraggingObjects = false;
-    dragStartPosMap.clear();
-    axisBadge.style.display = 'none';
-    controls.enabled = true;
-  });
-
-  btnToggleFile.addEventListener('click', () => {
-    filePopupEl.style.display = 'none';
-    btnToggleFile.classList.remove('active');
-    listPopupEl.style.display = 'none';
-    sectionPopupEl.style.display = 'none';
-    settingsPopupEl.style.display = 'none';
-    btnToggleSection.classList.remove('active');
-    btnToggleSettings.classList.remove('active');
-    updateTablePopup();
-  });
-
-  btnToggleList.addEventListener('click', () => {
-    listPopupEl.style.display = 'none';
-    btnToggleList.classList.remove('active');
-    filePopupEl.style.display = 'none';
-    sectionPopupEl.style.display = 'none';
-    settingsPopupEl.style.display = 'none';
-    btnToggleSection.classList.remove('active');
-    btnToggleSettings.classList.remove('active');
-    updateTablePopup();
-  });
-
-  btnToggleSection.addEventListener('click', () => {
-    sectionPopupEl.style.display = 'none';
-    btnToggleSection.classList.remove('active');
-    filePopupEl.style.display = 'none';
-    listPopupEl.style.display = 'none';
-    settingsPopupEl.style.display = 'none';
-    btnToggleSettings.classList.remove('active');
-    updateTablePopup();
-  });
-
-  document.getElementById('sec-enable').checked = false;
-  document.getElementById('sec-enable').disabled = true;
-  document.getElementById('sec-flip').checked = false;
-  document.getElementById('sec-flip').disabled = true;
-  document.getElementById('sec-gizmo-visible').checked = false;
-  document.getElementById('sec-gizmo-visible').disabled = true;
-  document.getElementById('sec-position').disabled = true;
-  document.getElementById('btn-sec-x').disabled = true;
-  document.getElementById('btn-sec-y').disabled = true;
-  document.getElementById('btn-sec-z').disabled = true;
-  secGizmoDisplayEnabled = false;
-  transformControl.visible = false;
-  transformControl.enabled = false;
-  secGizmo.visible = false;
-  refreshAllClipping();
-
-  document.getElementById('sec-enable').addEventListener('change', e => {
-    e.target.checked = false;
-    updateSectionGizmoVisibility();
-    updateSectionUI();
-    refreshAllClipping();
-  });
-
-  document.getElementById('sec-gizmo-visible').addEventListener('change', e => {
-    e.target.checked = false;
-    secGizmoDisplayEnabled = false;
-    updateSectionGizmoVisibility();
-  });
-
-  document.getElementById('sec-position').addEventListener('input', e => {
-    e.target.value = '0.00';
-  });
-
-  const btnSecX = document.getElementById('btn-sec-x');
-  const btnSecY = document.getElementById('btn-sec-y');
-  const btnSecZ = document.getElementById('btn-sec-z');
-
-  function setSecAxis(axis) {
-    currentSecAxis = axis;
-    btnSecX.classList.toggle('active', axis === 'x');
-    btnSecY.classList.toggle('active', axis === 'y');
-    btnSecZ.classList.toggle('active', axis === 'z');
-    updateSecGizmoOrientation();
-  }
-
-  btnSecX.addEventListener('click', () => {});
-  btnSecY.addEventListener('click', () => {});
-  btnSecZ.addEventListener('click', () => {});
-  updateSectionUI();
-
-  document.getElementById('sec-flip').addEventListener('change', e => {
-    e.target.checked = false;
-    secFlipped = false;
-    updateClipPlane();
-    updateSectionUI();
-  });
-</script>
-
-<script>
-async function loadModelFromURL(url, filename, options = {}) {
-  try {
-    document.getElementById('loading').classList.add('visible');
-    
-    const ext = filename.split('.').pop().toLowerCase();
-    
-    if (ext === 'glb' || ext === 'gltf') {
-      const response = await fetch(url);
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      const buffer = await response.arrayBuffer();
-      new THREE.GLTFLoader().parse(buffer, '', gltf => {
-        processLoadedGLTF(gltf, filename.replace(/\.[^/.]+$/, ""), buffer);
-      });
-    } else {
-      const response = await fetch(url);
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      const text = await response.text();
-      
-      if (ext === 'obj') {
-        const obj = new THREE.OBJLoader().parse(text);
-        processLoadedOBJ(obj, filename.replace(/\.[^/.]+$/, ""), text);
-      } else if (ext === 'dxf') {
-        const parsed = new DxfParser().parseSync(text);
-        processLoadedDXF(parsed, filename.replace(/\.[^/.]+$/, ""), text);
-      } else if (ext === 'json') {
-        const data = JSON.parse(text);
-        loadProject(data);
+      } catch (e) {
+        console.warn(`자동 로드 실패: ${filename}`, e);
+      } finally {
+        loadingEl.classList.remove('visible');
       }
     }
-  } catch (e) {
-    console.error(`자동 로드 실패: ${filename}`, e);
-  } finally {
-    document.getElementById('loading').classList.remove('visible');
-  }
-}
 
-window.addEventListener('DOMContentLoaded', async () => {
-  try {
-    const baseProjectUrl = '벽체, 보, 바닥.json';
-    await loadModelFromURL(baseProjectUrl, baseProjectUrl, { appendProjectJson: true, replaceExistingProject: true, suppressAutoModels: true });
-  } catch (e) {
-    console.warn('기본 프로젝트 자동 로드 실패:', e);
-  }
-
-  try {
-    const response = await fetch('models.json');
-    if (!response.ok) return;
-    const modelFiles = await response.json();
-    for (const file of modelFiles) {
-      if (file === '벽체, 보, 바닥.json') continue;
-      await loadModelFromURL(file, file, { appendProjectJson: true, replaceExistingProject: false });
+    const duration = 600;
+    let animStart = 0, animating = false;
+    const startPos = new THREE.Vector3();
+    const targetPos = new THREE.Vector3();
+    const targetTarget = new THREE.Vector3();
+    function smoothStep(t) { return t * t * (3 - 2 * t); }
+    function startViewTransition(pos, target) {
+      animStart = performance.now();
+      startPos.copy(camera.position);
+      targetPos.copy(pos);
+      targetTarget.copy(target);
+      animating = true;
+      requestAnimationFrame(updateViewTransition);
     }
-  } catch (e) {
-    console.warn('models.json 자동 로드 실패:', e);
-  }
-});
-</script>
+    function updateViewTransition(time) {
+      if (!animating) return;
+      let t = (time - animStart) / duration;
+      if (t >= 1) {
+        t = 1; animating = false;
+        camera.position.copy(targetPos);
+        controls.target.copy(targetTarget);
+        controls.update();
+      } else {
+        const f = smoothStep(t);
+        camera.position.lerpVectors(startPos, targetPos, f);
+        controls.target.lerpVectors(controls.target, targetTarget, f);
+        controls.update();
+        requestAnimationFrame(updateViewTransition);
+      }
+    }
+    function getCenter() {
+      if (!roots.length) return new THREE.Vector3(0,0,0);
+      const b = new THREE.Box3(); roots.forEach(r => b.expandByObject(r));
+      return b.getCenter(new THREE.Vector3());
+    }
+    function getDist() {
+      if (!roots.length) return 50;
+      const b = new THREE.Box3(); roots.forEach(r => b.expandByObject(r));
+      const s = b.getSize(new THREE.Vector3());
+      const maxDim = Math.max(s.x, s.y, s.z, 1);
+      const fovRad = camera.fov * (Math.PI / 180);
+      return ((maxDim / 2) / Math.tan(fovRad / 2)) * 2.2;
+    }
+
+    document.getElementById('vc-top').onclick = () => { const d = getDist(), c = getCenter(); startViewTransition(new THREE.Vector3(c.x, c.y + d, c.z), c); };
+    document.getElementById('vc-left').onclick = () => { const d = getDist(), c = getCenter(); startViewTransition(new THREE.Vector3(c.x - d, c.y, c.z), c); };
+    document.getElementById('vc-front').onclick = () => { const d = getDist(), c = getCenter(); startViewTransition(new THREE.Vector3(c.x, c.y, c.z + d), c); };
+    document.getElementById('vc-right').onclick = () => { const d = getDist(), c = getCenter(); startViewTransition(new THREE.Vector3(c.x + d, c.y, c.z), c); };
+    document.getElementById('vc-back').onclick = () => { const d = getDist(), c = getCenter(); startViewTransition(new THREE.Vector3(c.x, c.y, c.z - d), c); };
+    document.getElementById('vc-home').onclick = () => { const d = getDist(), c = getCenter(); startViewTransition(new THREE.Vector3(c.x + d*0.7, c.y + d*0.6, c.z + d*0.7), c); };
+
+    document.getElementById('bg-color').addEventListener('input', e => {
+      const hex = e.target.value;
+      document.body.style.background = hex;
+      document.getElementById('bg-color-display').style.backgroundColor = hex;
+    });
+
+    const settingsPopupEl = document.getElementById('settings-popup');
+    const btnToggleSettings = document.getElementById('btn-toggle-settings');
+    btnToggleSettings.addEventListener('click', () => {
+      const willOpen = settingsPopupEl.style.display === 'none' || settingsPopupEl.style.display === '';
+      settingsPopupEl.style.display = willOpen ? 'flex' : 'none';
+      btnToggleSettings.classList.toggle('active', willOpen);
+    });
+
+    ['btn-toggle-file','btn-distance','btn-markup','btn-schedule'].forEach(id => {
+      const el = document.getElementById(id);
+      el.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); });
+    });
+
+    document.getElementById('edge-enable').addEventListener('change', e => setModelEdgesVisible(e.target.checked));
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      try {
+        const baseProjectUrl = '벽체, 보, 바닥.json';
+        await loadModelFromURL(baseProjectUrl, baseProjectUrl);
+      } catch (e) {
+        console.warn('기본 프로젝트 자동 로드 실패:', e);
+      }
+
+      try {
+        const response = await fetch('models.json');
+        if (!response.ok) return;
+        const modelFiles = await response.json();
+        for (const file of modelFiles) {
+          if (file === '벽체, 보, 바닥.json') continue;
+          await loadModelFromURL(file, file);
+        }
+      } catch (e) {
+        console.warn('models.json 자동 로드 실패:', e);
+      }
+    });
+  </script>
 </body>
 </html>
